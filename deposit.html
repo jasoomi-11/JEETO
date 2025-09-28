@@ -124,63 +124,68 @@
 
     <div id="statusBox"></div>
   </main>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc, collection, query, where, getDocs, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-    import { getFirestore, doc, setDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+    authDomain: "jeeto-bb7f1.firebaseapp.com",
+    projectId: "jeeto-bb7f1",
+    storageBucket: "jeeto-bb7f1.firebasestorage.app",
+    messagingSenderId: "922013773739",
+    appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
-      authDomain: "jeeto-bb7f1.firebaseapp.com",
-      projectId: "jeeto-bb7f1",
-      storageBucket: "jeeto-bb7f1.firebasestorage.app",
-      messagingSenderId: "922013773739",
-      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
-    };
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const form = document.getElementById("depositForm");
+  const statusBox = document.getElementById("statusBox");
+  const logoutBtn = document.getElementById("logoutBtn");
 
-    const form = document.getElementById("depositForm");
-    const statusBox = document.getElementById("statusBox");
-    const logoutBtn = document.getElementById("logoutBtn");
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-        return;
-      }
-    });
-
-    logoutBtn.addEventListener("click", async () => {
-      await signOut(auth);
+  // ✅ Auth check
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
       window.location.href = "index.html";
-    });
+      return;
+    }
+  });
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const user = auth.currentUser;
-      const txnId = document.getElementById("txnId").value.trim();
-      const username = document.getElementById("username").value.trim();
-      const amount = parseInt(document.getElementById("amount").value);
+  // ✅ Logout
+  logoutBtn.addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "index.html";
+  });
 
-      if (amount < 700) {
-        alert("Minimum deposit amount is 700 PKR");
-        return;
-      }
+  // ✅ Deposit Submit
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
 
-      // Duplicate txnId check
-      const q = query(collection(db, "deposit"), where("txnId", "==", txnId));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        statusBox.innerHTML = `<div class="status rejected">Duplicate Transaction ID</div>`;
-        return;
-      }
+    const txnId = document.getElementById("txnId").value.trim();
+    const username = document.getElementById("username").value.trim();
+    const amount = parseInt(document.getElementById("amount").value);
 
-      await setDoc(doc(db, "deposit", user.uid), {
-        uid: user.uid,
+    if (amount < 700) {
+      alert("Minimum deposit amount is 700 PKR");
+      return;
+    }
+
+    // Duplicate txnId check
+    const q = query(collection(db, "deposit"), where("txnId", "==", txnId));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      statusBox.innerHTML = `<div class="status rejected">Duplicate Transaction ID</div>`;
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, "deposit"), {
+        uid: user.uid,          // ✅ rules ke liye zaroori
         username,
         txnId,
         amount,
@@ -190,9 +195,16 @@
 
       statusBox.innerHTML = `<div class="status pending">Deposit Pending (Waiting for Admin Approval)</div>`;
 
-      // Open WhatsApp to send proof
-      window.open(`https://wa.me/923368265030?text=Hello%20Admin,%20I%20have%20submitted%20deposit.%20TxnID:%20${txnId}%20Amount:%20${amount}`, "_blank");
-    });
-  </script>
+      // ✅ Open WhatsApp for proof
+      window.open(
+        `https://wa.me/923368265030?text=Hello%20Admin,%20I%20have%20submitted%20deposit.%20TxnID:%20${txnId}%20Amount:%20${amount}`,
+        "_blank"
+      );
+    } catch (err) {
+      console.error("Firestore error:", err);
+      statusBox.innerHTML = `<div class="status rejected">Error: ${err.message}</div>`;
+    }
+  });
+</script>
 </body>
 </html>
