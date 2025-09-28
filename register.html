@@ -80,7 +80,7 @@
     </div>
   </div>
 
-  <script type="module">
+<script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
     import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
@@ -115,35 +115,24 @@
       }
 
       try {
-        // ✅ Create User
+        // ✅ Firebase Authentication me account banao
         const cred = await createUserWithEmailAndPassword(auth, email, password);
         const uid = cred.user.uid;
 
-        // ✅ Create user document in "users"
+        // ✅ Bas ek document create hoga "users" collection me UID ke naam se
         await setDoc(doc(db, "users", uid), {
           username: username,
           email: email,
-          balance: 0,
-          status: "pending",
           createdAt: new Date()
         });
 
-        // ✅ Create initial deposit document
-        await setDoc(doc(db, "deposits", uid), {
-          userId: uid,
-          username: username,
-          email: email,
-          status: "pending",
-          createdAt: new Date()
-        });
-
-        // ✅ Redirect to deposit page
-        window.location.href = "deposit.html";
+        // ✅ Redirect to login
+        window.location.href = "login.html";
 
       } catch (error) {
         if (error.code === "auth/email-already-in-use") {
-          // User already exists → send to login
-          window.location.href = "index.html";
+          // User already exists → login page bhej do
+          window.location.href = "login.html";
         } else {
           showError(error.message);
         }
@@ -154,6 +143,6 @@
       errorBox.textContent = msg;
       errorBox.style.display = "block";
     }
-  </script>
+</script>
 </body>
 </html>

@@ -92,110 +92,120 @@
     <h2>Withdraw Requests</h2>
     <div id="withdrawRequests"></div>
   </main>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+  import { getFirestore, collection, doc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-    import { getFirestore, collection, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+  const firebaseConfig = {
+    apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+    authDomain: "jeeto-bb7f1.firebaseapp.com",
+    projectId: "jeeto-bb7f1",
+    storageBucket: "jeeto-bb7f1.firebasestorage.app",
+    messagingSenderId: "922013773739",
+    appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+  };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
-      authDomain: "jeeto-bb7f1.firebaseapp.com",
-      projectId: "jeeto-bb7f1",
-      storageBucket: "jeeto-bb7f1.firebasestorage.app",
-      messagingSenderId: "922013773739",
-      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
-    };
+  const ADMIN_UID = "5NHTlVfH7rPjcAz2fjoXfvvP6Mr1"; // ✅ Tumhara admin UID
 
-    const ADMIN_UID = "5NHTlVfH7rPjcAz2fjoXfvvP6Mr1"; // ✅ Tumhara admin UID yahan daalna
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const pendingDiv = document.getElementById("pendingDeposits");
+  const approvedDiv = document.getElementById("approvedDeposits");
+  const rejectedDiv = document.getElementById("rejectedDeposits");
+  const withdrawDiv = document.getElementById("withdrawRequests");
 
-    const pendingDiv = document.getElementById("pendingDeposits");
-    const approvedDiv = document.getElementById("approvedDeposits");
-    const rejectedDiv = document.getElementById("rejectedDeposits");
-    const withdrawDiv = document.getElementById("withdrawRequests");
+  // ✅ Check Admin Auth
+  onAuthStateChanged(auth, (user) => {
+    if (!user || user.uid !== ADMIN_UID) {
+      window.location.href = "index.html";
+    }
+  });
 
-    // ✅ Check Admin Auth
-    onAuthStateChanged(auth, (user) => {
-      if (!user || user.uid !== ADMIN_UID) {
-        window.location.href = "index.html";
+  // ✅ Logout
+  document.getElementById("logoutBtn").addEventListener("click", async () => {
+    await signOut(auth);
+    window.location.href = "login.html";
+  });
+
+  // ✅ Listen Deposits
+  onSnapshot(collection(db, "deposit"), (snapshot) => {
+    pendingDiv.innerHTML = "";
+    approvedDiv.innerHTML = "";
+    rejectedDiv.innerHTML = "";
+
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const div = document.createElement("div");
+      div.classList.add("card");
+      div.innerHTML = `
+        <p><b>User:</b> ${data.username}</p>
+        <p><b>TxnID:</b> ${data.txnId}</p>
+        <p><b>Amount:</b> ${data.amount} PKR</p>
+        <p><b>Status:</b> ${data.status}</p>
+      `;
+
+      if (data.status === "pending") {
+        const actions = document.createElement("div");
+        actions.classList.add("actions");
+
+        const approveBtn = document.createElement("button");
+        approveBtn.textContent = "Approve";
+        approveBtn.classList.add("approve");
+        approveBtn.onclick = () => updateStatus(docSnap.id, "approved");
+
+        const rejectBtn = document.createElement("button");
+        rejectBtn.textContent = "Reject";
+        rejectBtn.classList.add("reject");
+        rejectBtn.onclick = () => updateStatus(docSnap.id, "rejected");
+
+        actions.appendChild(approveBtn);
+        actions.appendChild(rejectBtn);
+        div.appendChild(actions);
+
+        pendingDiv.appendChild(div);
+      } else if (data.status === "approved") {
+        approvedDiv.appendChild(div);
+      } else if (data.status === "rejected") {
+        rejectedDiv.appendChild(div);
       }
     });
+  });
 
-    // ✅ Logout
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await signOut(auth);
-      window.location.href = "login.html";
-    });
+  // ✅ Deposit + Users status update
+  async function updateStatus(docId, status) {
+    await updateDoc(doc(db, "deposit", docId), { status });
 
-    // ✅ Listen Deposits
-    onSnapshot(collection(db, "deposit"), (snapshot) => {
-      pendingDiv.innerHTML = "";
-      approvedDiv.innerHTML = "";
-      rejectedDiv.innerHTML = "";
-
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        const div = document.createElement("div");
-        div.classList.add("card");
-        div.innerHTML = `
-          <p><b>User:</b> ${data.username}</p>
-          <p><b>TxnID:</b> ${data.txnId}</p>
-          <p><b>Amount:</b> ${data.amount} PKR</p>
-          <p><b>Status:</b> ${data.status}</p>
-        `;
-
-        if (data.status === "pending") {
-          const actions = document.createElement("div");
-          actions.classList.add("actions");
-
-          const approveBtn = document.createElement("button");
-          approveBtn.textContent = "Approve";
-          approveBtn.classList.add("approve");
-          approveBtn.onclick = () => updateStatus(docSnap.id, "approved");
-
-          const rejectBtn = document.createElement("button");
-          rejectBtn.textContent = "Reject";
-          rejectBtn.classList.add("reject");
-          rejectBtn.onclick = () => updateStatus(docSnap.id, "rejected");
-
-          actions.appendChild(approveBtn);
-          actions.appendChild(rejectBtn);
-          div.appendChild(actions);
-
-          pendingDiv.appendChild(div);
-        } else if (data.status === "approved") {
-          approvedDiv.appendChild(div);
-        } else if (data.status === "rejected") {
-          rejectedDiv.appendChild(div);
-        }
-      });
-    });
-
-    async function updateStatus(docId, status) {
-      await updateDoc(doc(db, "deposit", docId), { status });
+    // 🔹 Users collection update bhi
+    const depositSnap = await getDoc(doc(db, "deposit", docId));
+    if (depositSnap.exists()) {
+      const data = depositSnap.data();
+      if (data.userId) {
+        await updateDoc(doc(db, "users", data.userId), { status });
+      }
     }
+  }
 
-    // ✅ Listen Withdraw Requests
-    onSnapshot(collection(db, "withdraw"), (snapshot) => {
-      withdrawDiv.innerHTML = "";
-      snapshot.forEach(docSnap => {
-        const data = docSnap.data();
-        const div = document.createElement("div");
-        div.classList.add("card");
-        div.innerHTML = `
-          <p><b>User:</b> ${data.accountName}</p>
-          <p><b>Number:</b> ${data.accountNumber}</p>
-          <p><b>Method:</b> ${data.method}</p>
-          <p><b>Amount:</b> ${data.amount} PKR</p>
-          <p><b>Status:</b> ${data.status}</p>
-        `;
-        withdrawDiv.appendChild(div);
-      });
+  // ✅ Listen Withdraw Requests
+  onSnapshot(collection(db, "withdraw"), (snapshot) => {
+    withdrawDiv.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const div = document.createElement("div");
+      div.classList.add("card");
+      div.innerHTML = `
+        <p><b>User:</b> ${data.accountName}</p>
+        <p><b>Number:</b> ${data.accountNumber}</p>
+        <p><b>Method:</b> ${data.method}</p>
+        <p><b>Amount:</b> ${data.amount} PKR</p>
+        <p><b>Status:</b> ${data.status}</p>
+      `;
+      withdrawDiv.appendChild(div);
     });
-  </script>
+  });
+</script>
+ 
 </body>
 </html>

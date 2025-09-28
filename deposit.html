@@ -32,6 +32,19 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.4);
       z-index: 1000;
       text-align: right;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logout-btn {
+      background: red;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
     }
     main {
       padding: 20px;
@@ -92,6 +105,7 @@
 <body>
   <header>
     JEETO
+    <button id="logoutBtn" class="logout-btn">Logout</button>
   </header>
 
   <main>
@@ -113,7 +127,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
     import { getFirestore, doc, setDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -131,12 +145,18 @@
 
     const form = document.getElementById("depositForm");
     const statusBox = document.getElementById("statusBox");
+    const logoutBtn = document.getElementById("logoutBtn");
 
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         window.location.href = "index.html";
         return;
       }
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "index.html";
     });
 
     form.addEventListener("submit", async (e) => {
