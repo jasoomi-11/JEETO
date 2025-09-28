@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Withdraw - JEETO</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --bg1: #0d47a1;
+      --bg2: #000000;
+      --text: #ffffff;
+      --accent: #2196f3;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(135deg, var(--bg2), var(--bg1));
+      padding: 15px;
+      text-align: right;
+      font-weight: bold;
+      font-size: 22px;
+      color: var(--accent);
+      letter-spacing: 2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      z-index: 1000;
+    }
+    main {
+      padding: 20px;
+      margin-bottom: 100px; /* extra space for floating nav */
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    input, select, button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    input, select {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+    button {
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .history {
+      margin-top: 25px;
+    }
+    .history h3 {
+      margin-bottom: 10px;
+    }
+    .history-item {
+      padding: 12px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* ✅ Updated 3D Bottom Navbar */
+    nav {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      max-width: 480px;
+      background: linear-gradient(145deg, var(--bg1), var(--bg2));
+      display: flex;
+      justify-content: space-around;
+      padding: 14px 0;
+      border-radius: 18px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.1);
+      z-index: 1000;
+    }
+    nav a {
+      color: #bbb;
+      font-size: 22px;
+      text-decoration: none;
+      transition: transform 0.2s, color 0.2s;
+    }
+    nav a:hover {
+      transform: scale(1.2);
+      color: #90caf9;
+    }
+    nav a.active {
+      color: var(--accent);
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body>
+  <header>JEETO</header>
+  <main>
+    <h2>Withdraw Request</h2>
+    <form id="withdrawForm">
+      <input type="text" id="accountName" placeholder="Account Name" required />
+      <input type="number" id="accountNumber" placeholder="Account Number" required />
+      <select id="method" required>
+        <option value="">Select Method</option>
+        <option value="easypaisa">Easypaisa</option>
+        <option value="jazzcash">JazzCash</option>
+      </select>
+      <input type="number" id="amount" placeholder="Amount (Min 700 PKR)" required />
+      <button type="submit">Withdraw</button>
+    </form>
+
+    <div class="history">
+      <h3>Withdraw History</h3>
+      <div id="withdrawHistory"></div>
+    </div>
+  </main>
+
+  <nav>
+    <a href="home.html"><i class="fas fa-home"></i></a>
+    <a href="task.html"><i class="fas fa-tasks"></i></a>
+    <a href="profile.html"><i class="fas fa-user"></i></a>
+    <a href="withdraw.html" class="active"><i class="fas fa-wallet"></i></a>
+  </nav>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, addDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+      authDomain: "jeeto-bb7f1.firebaseapp.com",
+      projectId: "jeeto-bb7f1",
+      storageBucket: "jeeto-bb7f1.firebasestorage.app",
+      messagingSenderId: "922013773739",
+      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("withdrawForm");
+    const historyDiv = document.getElementById("withdrawHistory");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      const depositDoc = await getDoc(doc(db, "deposit", user.uid));
+      if (!depositDoc.exists() || depositDoc.data().status !== "approved") {
+        window.location.href = "deposit.html";
+        return;
+      }
+      loadHistory(user.uid);
+    });
+
+    async function loadHistory(uid) {
+      historyDiv.innerHTML = "";
+      const q = query(collection(db, "withdraw"), where("uid", "==", uid));
+      const snap = await getDocs(q);
+      snap.forEach(docSnap => {
+        const data = docSnap.data();
+        const item = document.createElement("div");
+        item.classList.add("history-item");
+        item.innerHTML = `
+          <span>${data.amount} PKR (${data.method})</span>
+          <span>${data.status}</span>
+        `;
+        historyDiv.appendChild(item);
+      });
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const user = auth.currentUser;
+      const accountName = document.getElementById("accountName").value;
+      const accountNumber = document.getElementById("accountNumber").value;
+      const method = document.getElementById("method").value;
+      const amount = parseInt(document.getElementById("amount").value);
+
+      if (amount < 700) {
+        alert("Minimum withdraw amount is 700 PKR");
+        return;
+      }
+
+      await addDoc(collection(db, "withdraw"), {
+        uid: user.uid,
+        accountName,
+        accountNumber,
+        method,
+        amount,
+        status: "pending",
+        createdAt: serverTimestamp()
+      });
+
+      alert("Withdraw request submitted!");
+      form.reset();
+      loadHistory(user.uid);
+    });
+  </script>
+</body>
+</html>

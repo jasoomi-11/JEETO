@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Jeeto - Login</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --bg1:#0d47a1;
+      --bg2:#000;
+      --accent:#4fc3f7;
+      --card-bg:rgba(255,255,255,0.05);
+      --card-border:rgba(255,255,255,0.1);
+    }
+    body {
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, var(--bg2) 60%, var(--bg1) 100%);
+      color:#fff;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+    header { text-align:center; padding:24px; }
+    header h1 {
+      margin:0;
+      font-size:32px;
+      background: linear-gradient(90deg, var(--accent), var(--bg1));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+    main { flex:1; display:flex; justify-content:center; align-items:center; padding:20px; }
+    .card {
+      background: var(--card-bg);
+      border:1px solid var(--card-border);
+      padding:24px;
+      border-radius:14px;
+      width:100%;
+      max-width:400px;
+      box-shadow:0 6px 18px rgba(0,0,0,.35);
+    }
+    .card h2 { margin:0 0 18px; text-align:center; color:var(--accent); }
+    label { display:block; font-size:14px; margin-bottom:6px; color:#cfd8e3; }
+    input {
+      width:100%; padding:12px; margin-bottom:14px;
+      border:none; border-radius:8px;
+      background:rgba(255,255,255,0.07); color:#fff;
+      font-size:15px; outline:none;
+    }
+    .btn {
+      width:100%; padding:14px; border:none; border-radius:10px;
+      font-size:16px; font-weight:700; cursor:pointer;
+      background:linear-gradient(90deg, var(--bg1), var(--accent)); color:#fff;
+    }
+    .btn:disabled { opacity:.6; cursor:not-allowed; }
+    .error { color:#ff7b7b; font-size:13px; margin:6px 0; text-align:center; }
+    .small { text-align:center; font-size:14px; margin-top:12px; color:#d0d6df; }
+    .small a { color:var(--accent); text-decoration:none; }
+  </style>
+</head>
+<body>
+  <header><h1>Login</h1></header>
+  <main>
+    <div class="card">
+      <h2>Welcome Back</h2>
+      <div id="error" class="error" style="display:none;"></div>
+      <label for="email">Email</label>
+      <input id="email" type="text" placeholder="Enter email" />
+      <label for="password">Password</label>
+      <input id="password" type="password" placeholder="Enter password" />
+      <button id="loginBtn" class="btn">Login</button>
+      <div class="small">Don’t have an account? <a href="register.html">Register</a></div>
+    </div>
+  </main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+// ✅ Firebase Config (tera wala)
+const firebaseConfig = {
+  apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+  authDomain: "jeeto-bb7f1.firebaseapp.com",
+  projectId: "jeeto-bb7f1",
+  storageBucket: "jeeto-bb7f1.firebasestorage.app",
+  messagingSenderId: "922013773739",
+  appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ✅ Pages jaha approved user ja sakta hai
+const accessPages = ["index.html","withdraw.html","task.html","profile.html"];
+
+// 🔹 Auto check login state
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    await checkUserStatus(user);
+  }
+});
+
+// ✅ Login Button
+const loginBtn = document.getElementById("loginBtn");
+const errorBox = document.getElementById("error");
+
+loginBtn.addEventListener("click", async () => {
+  const email = document.getElementById("email").value.trim().toLowerCase();
+  const password = document.getElementById("password").value;
+  errorBox.style.display = "none";
+
+  if (!email || !password) {
+    showError("Please fill all fields.");
+    return;
+  }
+
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    await checkUserStatus(cred.user);
+  } catch (error) {
+    showError("Wrong email or password.");
+  }
+});
+
+// ✅ Check User + Deposit
+async function checkUserStatus(user) {
+  try {
+    // 🔹 Ensure user doc exists
+    const userRef = doc(db, "users", user.uid);
+    let userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) {
+      await setDoc(userRef, {
+        email: user.email,
+        balance: 0,
+        createdAt: new Date()
+      });
+      userDoc = await getDoc(userRef);
+    }
+
+    // 🔹 Ensure deposit doc exists
+    const depRef = doc(db, "deposits", user.uid);
+    let depDoc = await getDoc(depRef);
+    if (!depDoc.exists()) {
+      await setDoc(depRef, {
+        userId: user.uid,
+        status: "pending",
+        createdAt: new Date()
+      });
+      depDoc = await getDoc(depRef);
+    }
+
+    const depData = depDoc.data();
+
+    // ✅ Redirect logic
+    if (depData.status === "approved") {
+      const currentPage = window.location.pathname.split("/").pop();
+      if (currentPage === "login.html" || !accessPages.includes(currentPage)) {
+        window.location.href = "index.html";
+      }
+    } else {
+      window.location.href = "deposit.html";
+    }
+  } catch (err) {
+    showError("Error checking deposit status.");
+    console.error(err);
+  }
+}
+
+function showError(msg) {
+  errorBox.textContent = msg;
+  errorBox.style.display = "block";
+}
+</script>
+</body>
+</html>

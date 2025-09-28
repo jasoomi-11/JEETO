@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deposit - JEETO</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --bg1: #0d47a1;
+      --bg2: #000000;
+      --text: #ffffff;
+      --accent: #2196f3;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      background-attachment: fixed;
+      color: var(--text);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(135deg, var(--bg2), var(--bg1));
+      padding: 15px 20px;
+      font-weight: bold;
+      font-size: 20px;
+      color: var(--accent);
+      letter-spacing: 2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      z-index: 1000;
+      text-align: right;
+    }
+    main {
+      padding: 20px;
+      margin-bottom: 80px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px);
+      transform: perspective(600px) rotateX(2deg);
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      color: var(--accent);
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      background: rgba(255,255,255,0.05);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+    input, button {
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    input {
+      background: rgba(255,255,255,0.1);
+      color: white;
+    }
+    button {
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .status {
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+    }
+    .pending { background: orange; color: black; }
+    .rejected { background: red; }
+  </style>
+</head>
+<body>
+  <header>
+    JEETO
+  </header>
+
+  <main>
+    <div class="card">
+      <h3>Easypaisa Details</h3>
+      <p>Name: Salman</p>
+      <p>Number: 03368265030</p>
+    </div>
+
+    <form id="depositForm">
+      <input type="text" id="txnId" placeholder="Transaction ID" required />
+      <input type="text" id="username" placeholder="Username" required />
+      <input type="number" id="amount" placeholder="Amount (Min 700 PKR)" required />
+      <button type="submit">Submit Deposit</button>
+    </form>
+
+    <div id="statusBox"></div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+      authDomain: "jeeto-bb7f1.firebaseapp.com",
+      projectId: "jeeto-bb7f1",
+      storageBucket: "jeeto-bb7f1.firebasestorage.app",
+      messagingSenderId: "922013773739",
+      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const form = document.getElementById("depositForm");
+    const statusBox = document.getElementById("statusBox");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const user = auth.currentUser;
+      const txnId = document.getElementById("txnId").value.trim();
+      const username = document.getElementById("username").value.trim();
+      const amount = parseInt(document.getElementById("amount").value);
+
+      if (amount < 700) {
+        alert("Minimum deposit amount is 700 PKR");
+        return;
+      }
+
+      // Duplicate txnId check
+      const q = query(collection(db, "deposit"), where("txnId", "==", txnId));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        statusBox.innerHTML = `<div class="status rejected">Duplicate Transaction ID</div>`;
+        return;
+      }
+
+      await setDoc(doc(db, "deposit", user.uid), {
+        uid: user.uid,
+        username,
+        txnId,
+        amount,
+        status: "pending",
+        createdAt: serverTimestamp()
+      });
+
+      statusBox.innerHTML = `<div class="status pending">Deposit Pending (Waiting for Admin Approval)</div>`;
+
+      // Open WhatsApp to send proof
+      window.open(`https://wa.me/923368265030?text=Hello%20Admin,%20I%20have%20submitted%20deposit.%20TxnID:%20${txnId}%20Amount:%20${amount}`, "_blank");
+    });
+  </script>
+</body>
+</html>

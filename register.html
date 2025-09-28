@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jeeto - Register</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0d47a1, #000000);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .container {
+      background: rgba(0,0,0,0.6);
+      padding: 25px;
+      border-radius: 12px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0px 0px 15px rgba(0,0,0,0.7);
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #64b5f6;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 6px;
+    }
+    button {
+      width: 95%;
+      padding: 10px;
+      border: none;
+      background: #1976d2;
+      color: white;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #0d47a1;
+    }
+    #error {
+      margin-top: 10px;
+      color: #ff5252;
+      display: none;
+    }
+    .link {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+    .link a {
+      color: #64b5f6;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .link a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Create Account</h2>
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button id="registerBtn">Register</button>
+    <div id="error"></div>
+    <div class="link">
+      Already have an account? <a href="login.html">Login</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    // ✅ Firebase Config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+      authDomain: "jeeto-bb7f1.firebaseapp.com",
+      projectId: "jeeto-bb7f1",
+      storageBucket: "jeeto-bb7f1.firebasestorage.app",
+      messagingSenderId: "922013773739",
+      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const registerBtn = document.getElementById("registerBtn");
+    const errorBox = document.getElementById("error");
+
+    registerBtn.addEventListener("click", async () => {
+      const username = document.getElementById("username").value.trim();
+      const email = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value;
+
+      errorBox.style.display = "none";
+
+      if (!username || !email || !password) {
+        showError("Please fill all fields.");
+        return;
+      }
+
+      try {
+        // ✅ Create User
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = cred.user.uid;
+
+        // ✅ Create user document in "users"
+        await setDoc(doc(db, "users", uid), {
+          username: username,
+          email: email,
+          balance: 0,
+          status: "pending",
+          createdAt: new Date()
+        });
+
+        // ✅ Create initial deposit document
+        await setDoc(doc(db, "deposits", uid), {
+          userId: uid,
+          username: username,
+          email: email,
+          status: "pending",
+          createdAt: new Date()
+        });
+
+        // ✅ Redirect to deposit page
+        window.location.href = "deposit.html";
+
+      } catch (error) {
+        if (error.code === "auth/email-already-in-use") {
+          // User already exists → send to login
+          window.location.href = "login.html";
+        } else {
+          showError(error.message);
+        }
+      }
+    });
+
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.style.display = "block";
+    }
+  </script>
+</body>
+</html>

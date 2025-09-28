@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile - JEETO</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root {
+      --bg1: #0d47a1;
+      --bg2: #000000;
+      --text: #ffffff;
+      --accent: #2196f3;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text);
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(135deg, var(--bg2), var(--bg1));
+      padding: 15px 20px;
+      font-weight: bold;
+      font-size: 20px;
+      color: var(--accent);
+      letter-spacing: 2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header .balance {
+      font-size: 16px;
+      color: var(--text);
+    }
+    main {
+      padding: 20px;
+      margin-bottom: 80px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      padding: 18px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px);
+      transform: perspective(600px) rotateX(2deg);
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      color: var(--accent);
+    }
+    nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      display: flex;
+      justify-content: space-around;
+      padding: 14px 10px;
+      box-shadow: 0 -3px 8px rgba(0,0,0,0.5);
+      z-index: 1000;
+      border-radius: 16px 16px 0 0;
+      margin: 0 8px 8px;
+      width: calc(100% - 16px);
+    }
+    nav a {
+      color: #bbb;
+      font-size: 22px;
+      text-decoration: none;
+      transition: transform 0.2s;
+    }
+    nav a.active {
+      color: var(--accent);
+      transform: scale(1.2);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="balance" id="balance">Balance: 0 PKR</div>
+    JEETO
+  </header>
+
+  <main>
+    <div class="card">
+      <h3>Username</h3>
+      <p id="username">Loading...</p>
+    </div>
+    <div class="card">
+      <h3>Email</h3>
+      <p id="email">Loading...</p>
+    </div>
+    <div class="card">
+      <h3>Registered At</h3>
+      <p id="createdAt">Loading...</p>
+    </div>
+    <div class="card">
+      <h3>Available Balance</h3>
+      <p id="availableBalance">0 PKR</p>
+    </div>
+  </main>
+
+  <nav>
+    <a href="home.html"><i class="fas fa-home"></i></a>
+    <a href="task.html"><i class="fas fa-tasks"></i></a>
+    <a href="profile.html" class="active"><i class="fas fa-user"></i></a>
+    <a href="withdraw.html"><i class="fas fa-wallet"></i></a>
+  </nav>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+      authDomain: "jeeto-bb7f1.firebaseapp.com",
+      projectId: "jeeto-bb7f1",
+      storageBucket: "jeeto-bb7f1.firebasestorage.app",
+      messagingSenderId: "922013773739",
+      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const balanceEl = document.getElementById("balance");
+    const usernameEl = document.getElementById("username");
+    const emailEl = document.getElementById("email");
+    const createdAtEl = document.getElementById("createdAt");
+    const availableBalanceEl = document.getElementById("availableBalance");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const depositDoc = await getDoc(doc(db, "deposit", user.uid));
+      if (!depositDoc.exists() || depositDoc.data().status !== "approved") {
+        window.location.href = "deposit.html";
+        return;
+      }
+
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        usernameEl.textContent = data.username || "N/A";
+        emailEl.textContent = data.email || user.email;
+        createdAtEl.textContent = data.createdAt?.toDate().toLocaleString() || "N/A";
+        availableBalanceEl.textContent = (data.balance || 0) + " PKR";
+        balanceEl.textContent = "Balance: " + (data.balance || 0) + " PKR";
+      }
+    });
+  </script>
+</body>
+</html>
