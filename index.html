@@ -79,7 +79,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebas
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-// ✅ Firebase Config (tera wala)
+// ✅ Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
   authDomain: "jeeto-bb7f1.firebaseapp.com",
@@ -95,6 +95,8 @@ const db = getFirestore(app);
 
 // ✅ Pages jaha approved user ja sakta hai
 const accessPages = ["index.html","withdraw.html","task.html","profile.html"];
+// ✅ Admin UID
+const adminUID = "jYhRub0W4WUziL7JPwS2yPcRiH52";
 
 // 🔹 Auto check login state
 onAuthStateChanged(auth, async (user) => {
@@ -125,9 +127,15 @@ loginBtn.addEventListener("click", async () => {
   }
 });
 
-// ✅ Check User + Deposit
+// ✅ Check User + Deposit + Withdraw + Admin
 async function checkUserStatus(user) {
   try {
+    // 🔹 Admin direct access
+    if (user.uid === adminUID) {
+      window.location.href = "admin.html";
+      return;
+    }
+
     // 🔹 Ensure user doc exists
     const userRef = doc(db, "users", user.uid);
     let userDoc = await getDoc(userRef);
@@ -152,6 +160,17 @@ async function checkUserStatus(user) {
       depDoc = await getDoc(depRef);
     }
 
+    // 🔹 Ensure withdraw doc exists
+    const withRef = doc(db, "withdrawals", user.uid);
+    let withDoc = await getDoc(withRef);
+    if (!withDoc.exists()) {
+      await setDoc(withRef, {
+        userId: user.uid,
+        status: "pending",
+        createdAt: new Date()
+      });
+    }
+
     const depData = depDoc.data();
 
     // ✅ Redirect logic
@@ -174,5 +193,7 @@ function showError(msg) {
   errorBox.style.display = "block";
 }
 </script>
+
+
 </body>
 </html>
