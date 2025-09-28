@@ -94,8 +94,21 @@
   </main>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-  import { getFirestore, collection, doc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+  import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signOut, 
+    setPersistence, 
+    browserSessionPersistence 
+  } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+  import { 
+    getFirestore, 
+    collection, 
+    doc, 
+    updateDoc, 
+    onSnapshot, 
+    getDoc
+  } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
@@ -106,13 +119,13 @@
     appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
   };
 
-  const ADMIN_UID = "5NHTlVfH7rPjcAz2fjoXfvvP6Mr1"; // ✅ Tumhara admin UID
+  const ADMIN_UID = "5NHTlVfH7rPjcAz2fjoXfvvP6Mr1";
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // ✅ Session persistence (logout ke baad auto-login block)
+  // ✅ Session-only login (no auto-login)
   await setPersistence(auth, browserSessionPersistence);
 
   const pendingDiv = document.getElementById("pendingDeposits");
@@ -120,22 +133,20 @@
   const rejectedDiv = document.getElementById("rejectedDeposits");
   const withdrawDiv = document.getElementById("withdrawRequests");
 
-  // ✅ Check Admin Auth (extra safety)
+  // ✅ Check Admin Auth
   onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      window.location.href = "login.html"; // agar login hi nahi hai
-    } else if (user.uid !== ADMIN_UID) {
-      window.location.href = "index.html"; // agar admin nahi hai
+    if (!user || user.uid !== ADMIN_UID) {
+      window.location.href = "index.html"; 
     }
   });
 
   // ✅ Logout
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await signOut(auth);
-    window.location.href = "login.html";
+    window.location.href = "index.html"; // direct redirect
   });
 
-  // ✅ Listen Deposits
+  // ✅ Listen Deposits (Realtime)
   onSnapshot(collection(db, "deposit"), (snapshot) => {
     pendingDiv.innerHTML = "";
     approvedDiv.innerHTML = "";
@@ -183,7 +194,6 @@
   async function updateStatus(docId, status) {
     await updateDoc(doc(db, "deposit", docId), { status });
 
-    // 🔹 Users collection update bhi
     const depositSnap = await getDoc(doc(db, "deposit", docId));
     if (depositSnap.exists()) {
       const data = depositSnap.data();
@@ -193,7 +203,7 @@
     }
   }
 
-  // ✅ Listen Withdraw Requests
+  // ✅ Listen Withdraw Requests (Realtime)
   onSnapshot(collection(db, "withdraw"), (snapshot) => {
     withdrawDiv.innerHTML = "";
     snapshot.forEach(docSnap => {
