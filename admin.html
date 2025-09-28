@@ -94,7 +94,7 @@
   </main>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+  import { getAuth, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
   import { getFirestore, collection, doc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -111,6 +111,9 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
+
+  // ✅ Session persistence (logout ke baad auto-login block)
+  await setPersistence(auth, browserSessionPersistence);
 
   const pendingDiv = document.getElementById("pendingDeposits");
   const approvedDiv = document.getElementById("approvedDeposits");

@@ -1,167 +1,176 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jeeto - Login</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg, #0d47a1, #000000);
-      color: white;
-    }
-    .card {
-      background: rgba(0,0,0,0.6);
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.8);
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-    }
-    h2 {
-      margin-bottom: 20px;
-      font-size: 28px;
-      font-weight: bold;
-      color: #00c6ff;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: none;
-      outline: none;
-      font-size: 16px;
-    }
-    .btn {
-      width: 100%;
-      padding: 12px;
-      margin-top: 15px;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #00c6ff, #0072ff);
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-      transition: transform 0.2s;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    }
-    .btn:hover {
-      transform: scale(1.05);
-    }
-    .error {
-      margin-top: 15px;
-      color: red;
-      display: none;
-    }
-    .link {
-      margin-top: 15px;
-      display: block;
-      color: #00c6ff;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>Login to JEETO</h2>
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="password" placeholder="Password">
-    <button id="loginBtn" class="btn">Login</button>
-    <p id="error" class="error"></p>
-    <span class="link" onclick="window.location.href='register.html'">Don't have an account? Register</span>
-  </div>
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <title>Jeeto - Login</title>  
+  <style>  
+    body {  
+      margin: 0;  
+      font-family: Arial, sans-serif;  
+      height: 100vh;  
+      display: flex;  
+      justify-content: center;  
+      align-items: center;  
+      background: linear-gradient(135deg, #0d47a1, #000000);  
+      color: white;  
+    }  
+    .card {  
+      background: rgba(0,0,0,0.6);  
+      padding: 30px;  
+      border-radius: 15px;  
+      box-shadow: 0 8px 20px rgba(0,0,0,0.8);  
+      width: 100%;  
+      max-width: 400px;  
+      text-align: center;  
+    }  
+    h2 {  
+      margin-bottom: 20px;  
+      font-size: 28px;  
+      font-weight: bold;  
+      color: #00c6ff;  
+    }  
+    input {  
+      width: 100%;  
+      padding: 12px;  
+      margin: 10px 0;  
+      border-radius: 8px;  
+      border: none;  
+      outline: none;  
+      font-size: 16px;  
+    }  
+    .btn {  
+      width: 100%;  
+      padding: 12px;  
+      margin-top: 15px;  
+      border: none;  
+      border-radius: 8px;  
+      background: linear-gradient(135deg, #00c6ff, #0072ff);  
+      color: white;  
+      font-size: 18px;  
+      font-weight: bold;  
+      cursor: pointer;  
+      transition: transform 0.2s;  
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);  
+    }  
+    .btn:hover {  
+      transform: scale(1.05);  
+    }  
+    .error {  
+      margin-top: 15px;  
+      color: red;  
+      display: none;  
+    }  
+    .link {  
+      margin-top: 15px;  
+      display: block;  
+      color: #00c6ff;  
+      cursor: pointer;  
+      text-decoration: underline;  
+    }  
+  </style>  
+</head>  
+<body>  
+  <div class="card">  
+    <h2>Login to JEETO</h2>  
+    <input type="email" id="email" placeholder="Email">  
+    <input type="password" id="password" placeholder="Password">  
+    <button id="loginBtn" class="btn">Login</button>  
+    <p id="error" class="error"></p>  
+    <span class="link" onclick="window.location.href='register.html'">Don't have an account? Register</span>  
+  </div>  
+ 
+<script type="module">  
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";  
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";  
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";  
+  
+    // ✅ Firebase Config  
+    const firebaseConfig = {  
+      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",  
+      authDomain: "jeeto-bb7f1.firebaseapp.com",  
+      projectId: "jeeto-bb7f1",  
+      storageBucket: "jeeto-bb7f1.firebasestorage.app",  
+      messagingSenderId: "922013773739",  
+      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"  
+    };  
+  
+    const app = initializeApp(firebaseConfig);  
+    const auth = getAuth(app);  
+    const db = getFirestore(app);  
+  
+    const loginBtn = document.getElementById("loginBtn");  
+    const errorBox = document.getElementById("error");  
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+    // ✅ Admin UID  
+    const ADMIN_UID = "jYhRub0W4WUziL7JPwS2yPcRiH52";  
+  
+    // ✅ Auto login check  
+    onAuthStateChanged(auth, async (user) => {  
+      if (user) {  
+        await checkUserStatus(user);  
+      }  
+    });  
+  
+    // ✅ Login Button  
+    loginBtn.addEventListener("click", async () => {  
+      const email = document.getElementById("email").value.trim().toLowerCase();  
+      const password = document.getElementById("password").value;  
+      errorBox.style.display = "none";  
+  
+      if (!email || !password) {  
+        showError("Please fill all fields.");  
+        return;  
+      }  
+  
+      try {  
+        const cred = await signInWithEmailAndPassword(auth, email, password);  
+        await checkUserStatus(cred.user);  
+      } catch (error) {  
+        showError("Wrong email or password.");  
+      }  
+    });  
+  
+    // ✅ Check user status  
+    async function checkUserStatus(user) {  
+      try {  
+        // 🔹 Agar Admin hai → direct admin page  
+        if (user.uid === ADMIN_UID) {  
+          window.location.href = "admin.html";  
+          return;  
+        }  
 
-    // ✅ Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
-      authDomain: "jeeto-bb7f1.firebaseapp.com",
-      projectId: "jeeto-bb7f1",
-      storageBucket: "jeeto-bb7f1.firebasestorage.app",
-      messagingSenderId: "922013773739",
-      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
-    };
+        const userRef = doc(db, "users", user.uid);  
+        let userDoc = await getDoc(userRef);  
+  
+        // Agar user doc nahi hai → create karo  
+        if (!userDoc.exists()) {  
+          await setDoc(userRef, {  
+            email: user.email,  
+            balance: 0,  
+            status: "pending",  
+            createdAt: new Date()  
+          });  
+          userDoc = await getDoc(userRef);  
+        }  
+  
+        const data = userDoc.data();  
+  
+        if (data.status === "approved") {  
+          window.location.href = "index.html"; // ✅ Full access  
+        } else {  
+          window.location.href = "deposit.html"; // ✅ Pending users  
+        }  
+      } catch (err) {  
+        showError("Error checking user.");  
+        console.error(err);  
+      }  
+    }  
+  
+    function showError(msg) {  
+      errorBox.textContent = msg;  
+      errorBox.style.display = "block";  
+    }  
+</script>
+  </body>  
+</html>  
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const loginBtn = document.getElementById("loginBtn");
-    const errorBox = document.getElementById("error");
-
-    // ✅ Auto login check
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        await checkUserStatus(user);
-      }
-    });
-
-    // ✅ Login Button
-    loginBtn.addEventListener("click", async () => {
-      const email = document.getElementById("email").value.trim().toLowerCase();
-      const password = document.getElementById("password").value;
-      errorBox.style.display = "none";
-
-      if (!email || !password) {
-        showError("Please fill all fields.");
-        return;
-      }
-
-      try {
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        await checkUserStatus(cred.user);
-      } catch (error) {
-        showError("Wrong email or password.");
-      }
-    });
-
-    // ✅ Check user status
-    async function checkUserStatus(user) {
-      try {
-        const userRef = doc(db, "users", user.uid);
-        let userDoc = await getDoc(userRef);
-
-        // Agar user doc nahi hai → create karo
-        if (!userDoc.exists()) {
-          await setDoc(userRef, {
-            email: user.email,
-            balance: 0,
-            status: "pending",
-            createdAt: new Date()
-          });
-          userDoc = await getDoc(userRef);
-        }
-
-        const data = userDoc.data();
-
-        if (data.status === "approved") {
-          window.location.href = "index.html"; // ✅ Full access
-        } else {
-          window.location.href = "deposit.html"; // ✅ Pending users
-        }
-      } catch (err) {
-        showError("Error checking user.");
-        console.error(err);
-      }
-    }
-
-    function showError(msg) {
-      errorBox.textContent = msg;
-      errorBox.style.display = "block";
-    }
-  </script>
-</body>
-</html>
