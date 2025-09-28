@@ -118,45 +118,32 @@
     <a href="withdraw.html"><i class="fas fa-wallet"></i></a>
   </nav>
 
-  <!-- ✅ Firebase Auth & Deposit Check -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+<!-- ✅ Firebase Auth Only -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 
-    // ✅ Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
-      authDomain: "jeeto-bb7f1.firebaseapp.com",
-      projectId: "jeeto-bb7f1",
-      storageBucket: "jeeto-bb7f1.firebasestorage.app",
-      messagingSenderId: "922013773739",
-      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
-    };
+  // ✅ Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+    authDomain: "jeeto-bb7f1.firebaseapp.com",
+    projectId: "jeeto-bb7f1",
+    storageBucket: "jeeto-bb7f1.firebasestorage.app",
+    messagingSenderId: "922013773739",
+    appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-    // ✅ Auth State Listener
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
-
-      try {
-        const depRef = doc(db, "deposits", user.uid);
-        const depSnap = await getDoc(depRef);
-
-        if (!depSnap.exists() || depSnap.data().status !== "approved") {
-          window.location.href = "deposit.html";
-        }
-      } catch (err) {
-        console.error("Error checking deposit:", err);
-        window.location.href = "login.html"; // fallback
-      }
-    });
-  </script>
+  // ✅ Auth State Listener
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "login.html"; // ❌ agar login nahi hai → redirect
+      return;
+    }
+    // ✅ Agar login hai → bina kisi check ke full access
+  });
+</script>
 </body>
 </html>

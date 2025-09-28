@@ -143,83 +143,78 @@
     <a href="withdraw.html" class="active"><i class="fas fa-wallet"></i></a>
   </nav>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-    import { getFirestore, doc, getDoc, addDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, addDoc, collection, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
-      authDomain: "jeeto-bb7f1.firebaseapp.com",
-      projectId: "jeeto-bb7f1",
-      storageBucket: "jeeto-bb7f1.firebasestorage.app",
-      messagingSenderId: "922013773739",
-      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+    authDomain: "jeeto-bb7f1.firebaseapp.com",
+    projectId: "jeeto-bb7f1",
+    storageBucket: "jeeto-bb7f1.firebasestorage.app",
+    messagingSenderId: "922013773739",
+    appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    const form = document.getElementById("withdrawForm");
-    const historyDiv = document.getElementById("withdrawHistory");
+  const form = document.getElementById("withdrawForm");
+  const historyDiv = document.getElementById("withdrawHistory");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-        return;
-      }
-      const depositDoc = await getDoc(doc(db, "deposit", user.uid));
-      if (!depositDoc.exists() || depositDoc.data().status !== "approved") {
-        window.location.href = "deposit.html";
-        return;
-      }
-      loadHistory(user.uid);
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "index.html";
+      return;
+    }
+    loadHistory(user.uid);
+  });
+
+  async function loadHistory(uid) {
+    historyDiv.innerHTML = "";
+    const q = query(collection(db, "withdraw"), where("uid", "==", uid));
+    const snap = await getDocs(q);
+    snap.forEach(docSnap => {
+      const data = docSnap.data();
+      const item = document.createElement("div");
+      item.classList.add("history-item");
+      item.innerHTML = `
+        <span>${data.amount} PKR (${data.method})</span>
+        <span>${data.status}</span>
+      `;
+      historyDiv.appendChild(item);
     });
+  }
 
-    async function loadHistory(uid) {
-      historyDiv.innerHTML = "";
-      const q = query(collection(db, "withdraw"), where("uid", "==", uid));
-      const snap = await getDocs(q);
-      snap.forEach(docSnap => {
-        const data = docSnap.data();
-        const item = document.createElement("div");
-        item.classList.add("history-item");
-        item.innerHTML = `
-          <span>${data.amount} PKR (${data.method})</span>
-          <span>${data.status}</span>
-        `;
-        historyDiv.appendChild(item);
-      });
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    const accountName = document.getElementById("accountName").value;
+    const accountNumber = document.getElementById("accountNumber").value;
+    const method = document.getElementById("method").value;
+    const amount = parseInt(document.getElementById("amount").value);
+
+    if (amount < 700) {
+      alert("Minimum withdraw amount is 700 PKR");
+      return;
     }
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const user = auth.currentUser;
-      const accountName = document.getElementById("accountName").value;
-      const accountNumber = document.getElementById("accountNumber").value;
-      const method = document.getElementById("method").value;
-      const amount = parseInt(document.getElementById("amount").value);
-
-      if (amount < 700) {
-        alert("Minimum withdraw amount is 700 PKR");
-        return;
-      }
-
-      await addDoc(collection(db, "withdraw"), {
-        uid: user.uid,
-        accountName,
-        accountNumber,
-        method,
-        amount,
-        status: "pending",
-        createdAt: serverTimestamp()
-      });
-
-      alert("Withdraw request submitted!");
-      form.reset();
-      loadHistory(user.uid);
+    await addDoc(collection(db, "withdraw"), {
+      uid: user.uid,
+      accountName,
+      accountNumber,
+      method,
+      amount,
+      status: "pending",
+      createdAt: serverTimestamp()
     });
-  </script>
+
+    alert("Withdraw request submitted!");
+    form.reset();
+    loadHistory(user.uid);
+  });
+</script>
 </body>
 </html>
