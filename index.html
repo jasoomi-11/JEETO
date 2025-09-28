@@ -156,7 +156,7 @@
         await setDoc(userRef, {  
           email: user.email,  
           balance: 0,  
-          status: "pending",  
+          status: "Pending",   // 🔹 default Pending (capital P)  
           createdAt: new Date()  
         });  
         userDoc = await getDoc(userRef);  
@@ -164,10 +164,11 @@
 
       const data = userDoc.data();  
 
-      if (data.status === "approved") {  
-        window.location.href = "index.html"; // ✅ Full access  
+      // ✅ Sirf Approved (capital A) users ko full access  
+      if (data.status === "Approved") {  
+        window.location.href = "homepage.html"; // full access pages start yahan se  
       } else {  
-        window.location.href = "deposit.html"; // ✅ Pending users  
+        window.location.href = "deposit.html"; // Pending users  
       }  
     } catch (err) {  
       showError("Error checking user.");  
