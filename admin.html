@@ -6,29 +6,22 @@
   <title>Admin - JEETO</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    :root {
-      --bg1: #0d47a1;
-      --bg2: #000000;
-      --text: #ffffff;
-      --accent: #2196f3;
-    }
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, var(--bg1), var(--bg2));
-      color: var(--text);
+      background: linear-gradient(135deg, #0d47a1, #000000);
+      color: #fff;
       min-height: 100vh;
     }
     header {
-      background: linear-gradient(135deg, var(--bg2), var(--bg1));
+      background: linear-gradient(135deg, #000000, #0d47a1);
       padding: 15px 20px;
       font-size: 20px;
       font-weight: bold;
-      color: var(--accent);
+      color: #2196f3;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
     }
     button.logout {
       background: red;
@@ -39,27 +32,13 @@
       cursor: pointer;
       font-weight: bold;
     }
-    main {
-      padding: 20px;
-    }
-    h2 {
-      margin-top: 25px;
-      margin-bottom: 10px;
-      border-bottom: 2px solid var(--accent);
-      padding-bottom: 5px;
-    }
+    main { padding: 20px; }
+    h2 { margin-top: 25px; margin-bottom: 10px; border-bottom: 2px solid #2196f3; padding-bottom: 5px; }
     .card {
       background: rgba(255,255,255,0.05);
       padding: 15px;
       margin-bottom: 12px;
       border-radius: 10px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-    }
-    .card p {
-      margin: 5px 0;
-    }
-    .actions {
-      margin-top: 10px;
     }
     .actions button {
       margin-right: 8px;
@@ -92,23 +71,11 @@
     <h2>Withdraw Requests</h2>
     <div id="withdrawRequests"></div>
   </main>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-  import { 
-    getAuth, 
-    onAuthStateChanged, 
-    signOut, 
-    setPersistence, 
-    browserSessionPersistence 
-  } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-  import { 
-    getFirestore, 
-    collection, 
-    doc, 
-    updateDoc, 
-    onSnapshot, 
-    getDoc
-  } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+  import { getAuth, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+  import { getFirestore, collection, doc, updateDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
@@ -119,13 +86,13 @@
     appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
   };
 
-  const ADMIN_UID = "5NHTlVfH7rPjcAz2fjoXfvvP6Mr1";
+  const ADMIN_UID = "5NHTlVfH7rPjcAz2fjoXfvvP6Mr1"; // 👈 Apna admin UID yahan daalna
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // ✅ Session-only login (no auto-login)
+  // ✅ Session-only login (no auto login)
   await setPersistence(auth, browserSessionPersistence);
 
   const pendingDiv = document.getElementById("pendingDeposits");
@@ -143,7 +110,7 @@
   // ✅ Logout
   document.getElementById("logoutBtn").addEventListener("click", async () => {
     await signOut(auth);
-    window.location.href = "index.html"; // direct redirect
+    window.location.href = "index.html"; 
   });
 
   // ✅ Listen Deposits (Realtime)
@@ -221,6 +188,5 @@
     });
   });
 </script>
- 
 </body>
 </html>
