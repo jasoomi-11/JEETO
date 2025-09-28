@@ -121,7 +121,7 @@
     // ✅ Check Admin Auth
     onAuthStateChanged(auth, (user) => {
       if (!user || user.uid !== ADMIN_UID) {
-        window.location.href = "login.html";
+        window.location.href = "index.html";
       }
     });
 
