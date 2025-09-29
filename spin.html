@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jeeto - Spin & Win</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a, #5a189a);
+      color: white;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    header {
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      font-size: 18px;
+      cursor: pointer;
+      background: rgba(0,0,0,0.6);
+      padding: 8px 14px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.7);
+    }
+    .wheel-container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.4);
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
+    .arrow {
+      position: absolute;
+      top: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; 
+      height: 0; 
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 30px solid #ff1744;
+    }
+    #spinBtn {
+      margin-top: 25px;
+      padding: 12px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(135deg, #a855f7, #5b21b6);
+      cursor: pointer;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.6);
+      transition: transform 0.2s;
+    }
+    #spinBtn:disabled {
+      background: gray;
+      cursor: not-allowed;
+    }
+    #result {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffea00;
+    }
+    #timer {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #ff7675;
+    }
+  </style>
+</head>
+<body>
+  <header onclick="window.location.href='homepage.html'">⬅ Back</header>
+
+  <div class="wheel-container">
+    <div class="arrow"></div>
+    <canvas id="wheel" width="300" height="300"></canvas>
+  </div>
+
+  <button id="spinBtn">Spin Now</button>
+  <div id="result"></div>
+  <div id="timer"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+  import { 
+    getAuth, 
+    onAuthStateChanged 
+  } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+  import { 
+    getFirestore, 
+    doc, 
+    getDoc, 
+    updateDoc, 
+    setDoc 
+  } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+  // ✅ Firebase Config
+  const firebaseConfig = {
+    apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+    authDomain: "jeeto-bb7f1.firebaseapp.com",
+    projectId: "jeeto-bb7f1",
+    storageBucket: "jeeto-bb7f1.firebasestorage.app",
+    messagingSenderId: "922013773739",
+    appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const wheelCanvas = document.getElementById("wheel");
+  const ctx = wheelCanvas.getContext("2d");
+  const spinBtn = document.getElementById("spinBtn");
+  const resultBox = document.getElementById("result");
+  const timerBox = document.getElementById("timer");
+
+  const rewards = ["150 PKR","100 PKR","50 PKR","30 PKR","Next Time"];
+  const colors = ["#6a1b9a","#9c27b0","#8e24aa","#ab47bc","#7b1fa2"];
+  let isSpinning = false;
+  let currentUser = null;
+
+  // 🎨 Draw wheel
+  function drawWheel() {
+    const slices = rewards.length;
+    const angleStep = (2 * Math.PI) / slices;
+    for (let i=0; i<slices; i++) {
+      ctx.beginPath();
+      ctx.moveTo(150,150);
+      ctx.arc(150,150,150,i*angleStep,(i+1)*angleStep);
+      ctx.fillStyle = colors[i];
+      ctx.fill();
+      ctx.save();
+      ctx.translate(150,150);
+      ctx.rotate(i*angleStep + angleStep/2);
+      ctx.fillStyle = "white";
+      ctx.font = "bold 16px Arial";
+      ctx.textAlign = "right";
+      ctx.fillText(rewards[i], 130, 10);
+      ctx.restore();
+    }
+  }
+  drawWheel();
+
+  // ⏰ Timer function
+  function startTimer(nextSpinTime) {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const diff = nextSpinTime - now;
+      if (diff <= 0) {
+        clearInterval(interval);
+        spinBtn.disabled = false;
+        timerBox.textContent = "You can spin now!";
+      } else {
+        const hours = Math.floor(diff/(1000*60*60));
+        const mins = Math.floor((diff%(1000*60*60))/(1000*60));
+        const secs = Math.floor((diff%(1000*60))/1000);
+        timerBox.textContent = `Next spin in: ${hours}h ${mins}m ${secs}s`;
+      }
+    }, 1000);
+  }
+
+  // 🎯 Handle Spin
+  async function spinWheel(userId, userData) {
+    if (isSpinning) return;
+    isSpinning = true;
+    spinBtn.disabled = true;
+    resultBox.textContent = "";
+
+    const slices = rewards.length;
+    const randIndex = Math.random() < 0.5 ? 3 : 4; // always 30 or Next Time
+    const finalAngle = (360/slices)*randIndex + (360*5); // extra spins
+
+    let rotation = 0;
+    const interval = setInterval(() => {
+      rotation += 20;
+      if (rotation >= finalAngle) {
+        clearInterval(interval);
+        const reward = rewards[randIndex];
+        resultBox.textContent = `🎉 You got: ${reward}`;
+
+        handleReward(userId, userData, reward);
+        isSpinning = false;
+      } else {
+        ctx.clearRect(0,0,300,300);
+        ctx.save();
+        ctx.translate(150,150);
+        ctx.rotate((rotation*Math.PI)/180);
+        ctx.translate(-150,-150);
+        drawWheel();
+        ctx.restore();
+      }
+    }, 30);
+  }
+
+  // 💰 Reward logic
+  async function handleReward(userId, userData, reward) {
+    let newBalance = userData.balance || 0;
+    if (reward !== "Next Time") {
+      const won = parseInt(reward);
+      newBalance += won;
+    }
+    const nextSpin = Date.now() + 24*60*60*1000;
+
+    await updateDoc(doc(db,"users",userId),{
+      balance: newBalance,
+      lastSpin: nextSpin
+    });
+
+    startTimer(nextSpin);
+  }
+
+  // 🔐 Auth check
+  onAuthStateChanged(auth, async (user) => {
+    
+    currentUser = user;
+    const userRef = doc(db,"users",user.uid);
+    let snap = await getDoc(userRef);
+
+    if (!snap.exists()) {
+      await setDoc(userRef,{ email:user.email, balance:0 });
+      snap = await getDoc(userRef);
+    }
+
+    const data = snap.data();
+    if (data.lastSpin && Date.now() < data.lastSpin) {
+      spinBtn.disabled = true;
+      startTimer(data.lastSpin);
+    } else {
+      spinBtn.disabled = false;
+    }
+
+    spinBtn.addEventListener("click",()=>spinWheel(user.uid,data));
+  });
+</script>
+</body>
+</html>

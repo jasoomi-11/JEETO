@@ -15,7 +15,7 @@
       color: white;
       display: flex;
       flex-direction: column;
-      align-items: center;
+      justify-content: space-between;
     }
 
     /* ✅ Header Title */
@@ -88,88 +88,6 @@
         font-size: 1.1rem;
       }
     }
-    
-    /* ✅ Cards Container */
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      width: 100%;
-      padding-bottom: 80px; /* navbar ke liye jagah */
-    }
-
-    /* ✅ Spin Card Style */
-    .card-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 40px;
-      padding: 20px;
-    }
-
-    .card {
-      background: linear-gradient(135deg, #4c1d95, #7e22ce);
-      color: white;
-      text-decoration: none;
-      border-radius: 18px;
-      width: 280px;
-      padding: 25px;
-      text-align: center;
-      transition: 0.4s;
-      box-shadow: 
-        0 10px 20px rgba(0,0,0,0.6),
-        inset 0 2px 8px rgba(255,255,255,0.1);
-      transform: perspective(1000px) rotateX(0deg) rotateY(0deg);
-    }
-
-    .card:hover {
-      transform: perspective(1000px) rotateX(8deg) rotateY(-8deg) scale(1.05);
-      box-shadow: 
-        0 15px 25px rgba(0,0,0,0.7),
-        inset 0 2px 10px rgba(255,255,255,0.15);
-    }
-
-    .card-content i {
-      font-size: 2.5rem;
-      margin-bottom: 12px;
-      color: #ff66ff;
-    }
-
-    .card-content h3 {
-      margin: 8px 0;
-      font-size: 1.4rem;
-    }
-
-    .card-content p {
-      font-size: 0.9rem;
-      opacity: 0.8;
-    }
-    
-/* ✅ Footer */
-footer {
-  width: 100%;
-  text-align: center;
-  padding: 12px 0;
-  margin-bottom: 70px; /* navbar se thoda upar */
-  color: #ccc;
-  font-size: 0.85rem;
-}
-
-footer a {
-  color: #ff66ff;
-  margin: 0 12px;
-  text-decoration: none;
-  transition: 0.3s;
-}
-
-footer a:hover {
-  color: #ffffff;
-  text-decoration: underline;
-}
-    
-    
   </style>
 </head>
 <body>
@@ -177,34 +95,13 @@ footer a:hover {
   <!-- ✅ Header Title -->
   <header>JEETO</header>
 
-  <!-- ✅ Main Content (Cards yahan rahenge) -->
-  <div class="main-content">
-    <div class="card-container">
-      <a href="spin.html" class="card">
-        <div class="card-content">
-          <i class="fa-solid fa-dharmachakra"></i>
-          <h3>Spin & Win</h3>
-          <p>Try your luck and earn daily rewards!</p>
-        </div>
-      </a>
-    </div>
-  </div>
-
-<!-- ✅ Footer -->
-<footer>
-  <a href="terms.html">Terms</a>
-  <a href="policies.html">Policies</a>
-  <a href="contact.html">Contact</a>
-</footer>
-
   <!-- ✅ Bottom Navbar with Icons -->
   <nav>
-    <a href="homepage.html" class="active"><i class="fa-solid fa-house"></i> Home</a>
+    <a href="index.html" class="active"><i class="fa-solid fa-house"></i> Home</a>
     <a href="task.html"><i class="fa-solid fa-list-check"></i> Tasks</a>
     <a href="withdraw.html"><i class="fa-solid fa-wallet"></i> Withdraw</a>
     <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
   </nav>
-
 
   <!-- ✅ Firebase Auth -->
   <script type="module">

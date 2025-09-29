@@ -6,116 +6,151 @@
   <title>Withdraw - JEETO</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    :root {
-      --bg1: #0d47a1;
-      --bg2: #000000;
-      --text: #ffffff;
-      --accent: #2196f3;
-    }
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, var(--bg1), var(--bg2));
-      color: var(--text);
+      background: linear-gradient(135deg, #0a0a0a, #5a189a); /* ✅ Black + Purple */
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
+
+    /* ✅ Header */
     header {
       position: sticky;
       top: 0;
-      background: linear-gradient(135deg, var(--bg2), var(--bg1));
-      padding: 15px;
-      text-align: right;
-      font-weight: bold;
-      font-size: 22px;
-      color: var(--accent);
+      text-align: center;
+      padding: 18px;
+      font-size: 28px;
+      font-weight: 900;
       letter-spacing: 2px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      background-clip: text;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-image: linear-gradient(135deg, #a855f7, #ec4899);
+      text-shadow: 0px 4px 12px rgba(200, 0, 255, 0.6);
       z-index: 1000;
     }
+
     main {
+      flex: 1;
       padding: 20px;
-      margin-bottom: 100px; /* extra space for floating nav */
+      margin-bottom: 120px; /* extra space for floating nav */
     }
+
     h2 {
       text-align: center;
       margin-bottom: 20px;
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0px 4px 12px rgba(200, 0, 255, 0.6);
     }
+
     form {
       display: flex;
       flex-direction: column;
       gap: 15px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.08);
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     }
+
     input, select, button {
       padding: 12px;
       border: none;
       border-radius: 8px;
       font-size: 16px;
     }
+
     input, select {
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.12);
       color: white;
     }
+
     button {
-      background: var(--accent);
+      background: linear-gradient(135deg, #a855f7, #ec4899);
       color: white;
       cursor: pointer;
       font-weight: bold;
+      transition: 0.3s;
     }
+
     button:hover {
       opacity: 0.9;
+      transform: translateY(-2px);
     }
+
     .history {
       margin-top: 25px;
     }
+
     .history h3 {
       margin-bottom: 10px;
+      font-size: 20px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0px 3px 10px rgba(200, 0, 255, 0.6);
     }
+
     .history-item {
       padding: 12px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.08);
       border-radius: 8px;
       margin-bottom: 8px;
       display: flex;
       justify-content: space-between;
     }
 
-    /* ✅ Updated 3D Bottom Navbar */
+    /* ✅ Glassy 3D Navbar */
     nav {
       position: fixed;
       bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      width: 90%;
+      width: 92%;
       max-width: 480px;
-      background: linear-gradient(145deg, var(--bg1), var(--bg2));
       display: flex;
       justify-content: space-around;
       padding: 14px 0;
       border-radius: 18px;
-      box-shadow: 0 6px 15px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.1);
+      background: rgba(0, 0, 0, 0.65);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 -6px 18px rgba(0,0,0,0.8), 
+                  0 4px 12px rgba(0,0,0,0.6) inset;
       z-index: 1000;
     }
+
     nav a {
       color: #bbb;
       font-size: 22px;
       text-decoration: none;
-      transition: transform 0.2s, color 0.2s;
+      transition: transform 0.2s, color 0.2s, text-shadow 0.2s;
     }
+
     nav a:hover {
-      transform: scale(1.2);
-      color: #90caf9;
+      transform: translateY(-5px) scale(1.1);
+      color: #fff;
+      text-shadow: 0 0 12px #a855f7;
     }
+
     nav a.active {
-      color: var(--accent);
-      transform: scale(1.2);
+      color: #a855f7;
+      text-shadow: 0 0 14px #a855f7, 0 0 28px #ec4899;
+      transform: translateY(-5px) scale(1.1);
     }
   </style>
 </head>
 <body>
   <header>JEETO</header>
+
   <main>
     <h2>Withdraw Request</h2>
     <form id="withdrawForm">
@@ -132,16 +167,27 @@
 
     <div class="history">
       <h3>Withdraw History</h3>
-      <div id="withdrawHistory"></div>
+      <div id="withdrawHistory">
+        <div class="history-item">
+          <span>JazzCash - 1000 PKR</span>
+          <span>✅ Approved</span>
+        </div>
+        <div class="history-item">
+          <span>Easypaisa - 800 PKR</span>
+          <span>⏳ Pending</span>
+        </div>
+      </div>
     </div>
   </main>
 
+  <!-- ✅ Bottom Navigation -->
   <nav>
-    <a href="home.html"><i class="fas fa-home"></i></a>
+    <a href="homepage.html"><i class="fas fa-home"></i></a>
     <a href="task.html"><i class="fas fa-tasks"></i></a>
     <a href="profile.html"><i class="fas fa-user"></i></a>
     <a href="withdraw.html" class="active"><i class="fas fa-wallet"></i></a>
   </nav>
+
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
