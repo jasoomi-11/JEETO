@@ -12,11 +12,13 @@
       --text: #ffffff;
       --accent: #9c27b0;
     }
+    * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, var(--bg1), var(--bg2));
       color: var(--text);
+      -webkit-font-smoothing:antialiased;
     }
     header {
       position: sticky;
@@ -39,23 +41,136 @@
     }
     main {
       padding: 20px;
-      margin-bottom: 120px; /* nav ke liye space */
+      margin-bottom: 120px;
+      text-align: center;
     }
-    .card {
-      background: rgba(255,255,255,0.08);
-      padding: 18px;
+
+    /* Profile Pic */
+    .profile-pic {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin: 0 auto 20px;
+      border: 4px solid var(--accent);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.7);
+      background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color: rgba(255,255,255,0.9);
+      font-size: 42px;
+    }
+    .profile-pic img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Balance Cards */
+    .balance-cards {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 25px;
+    }
+    .debit-card {
+      width: 260px;
+      min-height: 160px;
+      border-radius: 18px;
+      padding: 20px;
+      color: var(--text);
+      background: linear-gradient(145deg, var(--accent), #5e1870);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.8);
+      backdrop-filter: blur(6px);
+      font-family: "Courier New", monospace;
+      transform: perspective(1000px) rotateX(5deg);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .debit-card .label {
+      font-size: 14px;
+      opacity: 0.95;
+    }
+    .debit-card .amount {
+      font-size: 26px;
+      font-weight: bold;
+      margin: 10px 0;
+      letter-spacing: 1px;
+    }
+    .debit-card .provider {
+      font-size: 12px;
+      opacity: 0.9;
+      position: absolute;
+      bottom: 10px;
+      left: 15px;
+      text-transform: capitalize;
+    }
+    .debit-card .sim-icon {
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      font-size: 22px;
+      opacity: 0.95;
+    }
+
+    /* ✅ JCoin Card */
+    #jcoinCard {
+      background: linear-gradient(145deg, #ff9800, #e65100);
+    }
+    #jcoinCard .sim-icon {
+      color: gold;
+    }
+    #jcoinCard .convert-btn {
+      margin-top: 10px;
+      padding: 8px 14px;
+      background: #ffd54f;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      color: #222;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    #jcoinCard .convert-btn:hover {
+      background: #ffeb3b;
+      transform: scale(1.05);
+    }
+
+    /* Profile Info Card */
+    .info-card {
+      background: rgba(255,255,255,0.06);
+      padding: 20px;
       border-radius: 15px;
-      margin-bottom: 15px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.6);
       backdrop-filter: blur(10px);
-      transform: perspective(800px) rotateX(2deg);
+      text-align: left;
+      max-width: 420px;
+      margin: 0 auto;
     }
-    .card h3 {
-      margin: 0 0 8px;
+    .info-card h2 {
+      text-align: center;
+      color: var(--accent);
+      margin-bottom: 15px;
+      font-size: 20px;
+    }
+    .info-card p {
+      margin: 10px 0;
+      font-size: 15px;
+      line-height: 1.3;
+      word-break: break-word;
+    }
+    .info-card strong {
       color: var(--accent);
     }
 
-    /* ✅ Updated 3D Glassy Nav - Edges Touch Nahi Karega */
+    .muted { opacity: 0.7; }
+
+    /* Bottom Nav */
     nav {
       position: fixed;
       bottom: 20px;
@@ -68,7 +183,7 @@
       justify-content: space-around;
       padding: 14px 0;
       border-radius: 18px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.7), inset 0 2px 4px rgba(255,255,255,0.15);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.7), inset 0 2px 4px rgba(255,255,255,0.03);
       backdrop-filter: blur(10px);
       z-index: 1000;
     }
@@ -86,91 +201,221 @@
       color: var(--accent);
       transform: scale(1.2);
     }
+
+    @media (max-width: 420px){
+      .debit-card { width: 220px; min-height: 140px; }
+      .profile-pic { width: 100px; height: 100px; font-size: 36px; }
+    }
   </style>
 </head>
 <body>
   <header>
-    <div class="balance" id="balance">Balance: 0 PKR</div>
+    <div class="balance" id="headerBalance">Balance: —</div>
     JEETO
   </header>
 
   <main>
-    <div class="card">
-      <h3>Username</h3>
-      <p id="username">Loading...</p>
+    <!-- Profile Pic -->
+    <div class="profile-pic" id="profilePic">
+      <i class="fas fa-user" id="profilePlaceholderIcon"></i>
     </div>
-    <div class="card">
-      <h3>Email</h3>
-      <p id="email">Loading...</p>
+
+    <!-- PKR Balance Card -->
+    <div class="balance-cards">
+      <div class="debit-card" id="debitCard" aria-live="polite">
+        <div class="sim-icon"><i class="fas fa-sim-card"></i></div>
+        <div class="label">Available Balance</div>
+        <div class="amount" id="cardAmount">—</div>
+        <div class="provider" id="cardProvider" style="display:none;"></div>
+      </div>
     </div>
-    <div class="card">
-      <h3>Registered At</h3>
-      <p id="createdAt">Loading...</p>
+
+    <!-- ✅ JCoins Convert Card -->
+    <div class="balance-cards">
+      <div class="debit-card" id="jcoinCard" aria-live="polite">
+        <div class="sim-icon"><i class="fas fa-coins"></i></div>
+        <div class="label">JCoins Balance</div>
+        <div class="amount" id="jcoinAmount">0 JCoins</div>
+        <button class="convert-btn" id="convertBtn">Convert to PKR</button>
+        <div class="provider">1000 JCoins = 200 PKR</div>
+      </div>
     </div>
-    <div class="card">
-      <h3>Available Balance</h3>
-      <p id="availableBalance">0 PKR</p>
+
+    <!-- Profile Info -->
+    <div class="info-card" id="infoCard">
+      <h2>👤 Profile Details</h2>
+      <p><strong>Username:</strong> <span id="username" class="muted">—</span></p>
+      <p><strong>Email:</strong> <span id="email" class="muted">—</span></p>
+      <p><strong>Registered:</strong> <span id="createdAt" class="muted">—</span></p>
     </div>
   </main>
 
+  <!-- Bottom Navigation -->
   <nav>
     <a href="homepage.html"><i class="fas fa-home"></i></a>
     <a href="task.html"><i class="fas fa-tasks"></i></a>
-    <a href="profile.html" class="active"><i class="fas fa-user"></i></a>
+    <a href="profile3.html" class="active"><i class="fas fa-user"></i></a>
     <a href="withdraw.html"><i class="fas fa-wallet"></i></a>
   </nav>
+  
+  <!-- Firebase + logic -->
+  <script type="module">
+    // Firebase v12 modular imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { 
+      getFirestore, doc, onSnapshot, updateDoc, increment 
+    } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+    // ----- Your Firebase config -----
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+      authDomain: "jeeto-bb7f1.firebaseapp.com",
+      projectId: "jeeto-bb7f1",
+      storageBucket: "jeeto-bb7f1.firebasestorage.app",
+      messagingSenderId: "922013773739",
+      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+    };
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
-    authDomain: "jeeto-bb7f1.firebaseapp.com",
-    projectId: "jeeto-bb7f1",
-    storageBucket: "jeeto-bb7f1.firebasestorage.app",
-    messagingSenderId: "922013773739",
-    appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
-  };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    // DOM refs
+    const headerBalanceEl = document.getElementById('headerBalance');
+    const cardAmountEl = document.getElementById('cardAmount');
+    const cardProviderEl = document.getElementById('cardProvider');
+    const usernameEl = document.getElementById('username');
+    const emailEl = document.getElementById('email');
+    const createdAtEl = document.getElementById('createdAt');
+    const profilePicContainer = document.getElementById('profilePic');
+    const profilePlaceholderIcon = document.getElementById('profilePlaceholderIcon');
 
-  const balanceEl = document.getElementById("balance");
-  const usernameEl = document.getElementById("username");
-  const emailEl = document.getElementById("email");
-  const createdAtEl = document.getElementById("createdAt");
-  const availableBalanceEl = document.getElementById("availableBalance");
+    // ✅ JCoin DOM
+    const jcoinAmountEl = document.getElementById('jcoinAmount');
+    const convertBtn = document.getElementById('convertBtn');
 
-  onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-      window.location.href = "index.html"; // ❌ Not logged in
-      return;
-    }
+    let unsubscribeUserDoc = null;
 
-    const userDoc = await getDoc(doc(db, "users", user.uid));
-    if (!userDoc.exists()) {
-      window.location.href = "deposit.html"; // ❌ No record → send to deposit
-      return;
-    }
+    onAuthStateChanged(auth, (user) => {
+      // clean up listener if any
+      if (unsubscribeUserDoc) unsubscribeUserDoc();
 
-    const data = userDoc.data();
+      if (!user) {
+        window.location.href = "index.html";
+        return;
+      }
 
-    // ✅ Check status from users collection
-    if (data.status !== "Approved") {
-      window.location.href = "deposit.html"; // ❌ Pending users → deposit page
-      return;
-    }
+      const userDocRef = doc(db, "users", user.uid);
 
-    // ✅ Approved users → Full access
-    usernameEl.textContent = data.username || "N/A";
-    emailEl.textContent = data.email || user.email;
-    createdAtEl.textContent = data.createdAt?.toDate().toLocaleString() || "N/A";
-    availableBalanceEl.textContent = (data.balance || 0) + " PKR";
-    balanceEl.textContent = "Balance: " + (data.balance || 0) + " PKR";
-  });
-</script>
+      unsubscribeUserDoc = onSnapshot(userDocRef, (snap) => {
+        if (!snap.exists()) {
+          window.location.href = "deposit.html";
+          return;
+        }
+        const data = snap.data();
+
+        if (data.status && data.status !== "Approved") {
+          window.location.href = "deposit.html";
+          return;
+        }
+
+        // ----- Profile Picture -----
+        const photoURL = data.photoURL || user.photoURL || null;
+        const existingImg = document.getElementById('profileImg');
+        if (existingImg) existingImg.remove();
+
+        if (photoURL) {
+          if (profilePlaceholderIcon) profilePlaceholderIcon.style.display = 'none';
+          const img = document.createElement('img');
+          img.id = 'profileImg';
+          img.alt = 'Profile Picture';
+          img.src = photoURL;
+          img.onerror = () => {
+            if (profilePlaceholderIcon) profilePlaceholderIcon.style.display = 'block';
+            img.remove();
+          };
+          profilePicContainer.appendChild(img);
+        } else {
+          if (profilePlaceholderIcon) profilePlaceholderIcon.style.display = 'block';
+        }
+
+        // ----- PKR Balance -----
+        const balanceVal = (typeof data.balance === 'number' || (data.balance && !isNaN(Number(data.balance)))) ? Number(data.balance) : null;
+        const balanceText = (balanceVal !== null) ? `${balanceVal} PKR` : '—';
+        headerBalanceEl.textContent = `Balance: ${balanceText}`;
+        cardAmountEl.textContent = balanceText;
+
+        if (data.paymentProvider) {
+          cardProviderEl.style.display = 'block';
+          cardProviderEl.textContent = data.paymentProvider;
+        } else {
+          cardProviderEl.style.display = 'none';
+          cardProviderEl.textContent = '';
+        }
+
+        // ----- Profile Info -----
+        usernameEl.textContent = data.username || user.displayName || '—';
+        emailEl.textContent = data.email || user.email || '—';
+        let createdStr = '—';
+        if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+          createdStr = data.createdAt.toDate().toLocaleString();
+        } else if (data.createdAt) {
+          try {
+            const dt = new Date(data.createdAt);
+            if (!isNaN(dt)) createdStr = dt.toLocaleString();
+          } catch (e) {}
+        } else if (user.metadata && user.metadata.creationTime) {
+          createdStr = new Date(user.metadata.creationTime).toLocaleString();
+        }
+        createdAtEl.textContent = createdStr;
+
+        // ----- ✅ JCoins -----
+        const jcoinsVal = (typeof data.jcoins === 'number') ? data.jcoins : 0;
+        jcoinAmountEl.textContent = `${jcoinsVal} JCoins`;
+
+        // Enable/disable convert button
+        if (jcoinsVal >= 1000) {
+          convertBtn.disabled = false;
+          convertBtn.style.opacity = "1";
+          convertBtn.style.cursor = "pointer";
+        } else {
+          convertBtn.disabled = true;
+          convertBtn.style.opacity = "0.6";
+          convertBtn.style.cursor = "not-allowed";
+        }
+      }, (err) => {
+        console.error("Error listening to user document:", err);
+      });
+
+      // ----- ✅ Convert Button Logic -----
+      convertBtn.addEventListener("click", async () => {
+        try {
+          const snap = await import("https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js")
+            .then(m => m.getDoc(userDocRef));
+          if (!snap.exists()) return;
+          const data = snap.data();
+          const jcoinsVal = data.jcoins || 0;
+
+          if (jcoinsVal < 1000) {
+            alert("Not enough JCoins to convert.");
+            return;
+          }
+
+          // Convert 1000 JCoins -> 200 PKR
+          await updateDoc(userDocRef, {
+            jcoins: increment(-1000),
+            balance: increment(200)
+          });
+
+          alert("✅ Successfully converted 1000 JCoins into 200 PKR!");
+        } catch (err) {
+          console.error("Conversion error:", err);
+          alert("Error during conversion. Try again.");
+        }
+      });
+    });
+  </script>
+  
 </body>
 </html>

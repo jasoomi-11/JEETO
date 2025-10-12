@@ -100,6 +100,24 @@
     .link a:hover {
       color: #ec4899;
     }
+    
+    
+    .spinner {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
   </style>
 </head>
 <body>
@@ -111,10 +129,9 @@
     <button id="registerBtn" class="btn">Register</button>
     <div id="error"></div>
     <div class="link">
-      Already have an account? <a href="login.html">Login</a>
+      Already have an account? <a href="index.html">Login</a>
     </div>
   </div>
-
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
@@ -149,6 +166,10 @@
         return;
       }
 
+      // 🔹 Show loading spinner in button
+      registerBtn.disabled = true;
+      registerBtn.innerHTML = 'Registering... <span class="spinner"></span>';
+
       try {
         // ✅ Firebase Authentication me account banao
         const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -171,6 +192,10 @@
         } else {
           showError(error.message);
         }
+      } finally {
+        // 🔹 Reset button if registration fails
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Register';
       }
     });
 

@@ -84,24 +84,6 @@
     .link:hover {
       color: #ec4899;
     }
-    
-    
-    .spinner {
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  border-top: 3px solid #fff;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-  vertical-align: middle;
-  margin-left: 8px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
   </style>
 </head>
 <body>
@@ -155,32 +137,24 @@
     }
   });
 
-// ✅ Login Button
-loginBtn.addEventListener("click", async () => {
-  const email = document.getElementById("email").value.trim().toLowerCase();
-  const password = document.getElementById("password").value;
-  errorBox.style.display = "none";
+  // ✅ Login Button
+  loginBtn.addEventListener("click", async () => {
+    const email = document.getElementById("email").value.trim().toLowerCase();
+    const password = document.getElementById("password").value;
+    errorBox.style.display = "none";
 
-  if (!email || !password) {
-    showError("Please fill all fields.");
-    return;
-  }
+    if (!email || !password) {
+      showError("Please fill all fields.");
+      return;
+    }
 
-  // 🔹 Show loading spinner in button
-  loginBtn.disabled = true;
-  loginBtn.innerHTML = 'Logging in... <span class="spinner"></span>';
-
-  try {
-    const cred = await signInWithEmailAndPassword(auth, email, password);
-    await checkUserStatus(cred.user);
-  } catch (error) {
-    showError("Wrong email or password.");
-  } finally {
-    // 🔹 Reset button if login fails or after redirect
-    loginBtn.disabled = false;
-    loginBtn.textContent = 'Login';
-  }
-});
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      await checkUserStatus(cred.user);
+    } catch (error) {
+      showError("Wrong email or password.");
+    }
+  });
 
   // ✅ Check user status
   async function checkUserStatus(user) {

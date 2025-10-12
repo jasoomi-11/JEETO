@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Daily Rewards - JEETO</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    :root{
+      --bg1:#0a0a0a;
+      --bg2:#5a189a;
+      --accent1:#a855f7;
+      --accent2:#ec4899;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial, sans-serif;
+      background:linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:white;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+    header{
+      text-align:center;
+      padding:18px;
+      font-size:28px;
+      font-weight:900;
+      background:linear-gradient(135deg,var(--accent1),var(--accent2));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      text-shadow:0px 4px 12px rgba(200,0,255,0.45);
+    }
+    main{
+      flex:1;
+      padding:20px;
+      margin-bottom:40px;
+      max-width:980px;
+      width:100%;
+      margin-left:auto;
+      margin-right:auto;
+    }
+    h2{
+      text-align:center;
+      margin-bottom:20px;
+      font-size:22px;
+      font-weight:800;
+      background:linear-gradient(135deg,var(--accent1),var(--accent2));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      text-shadow:0px 3px 10px rgba(200,0,255,0.35);
+    }
+    .rewards{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
+      gap:18px;
+      align-items:start;
+    }
+    .reward-card{
+      background:rgba(255,255,255,0.06);
+      border-radius:14px;
+      padding:16px;
+      text-align:center;
+      box-shadow:0 6px 20px rgba(0,0,0,0.6);
+      transition:transform .22s;
+      min-height:150px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+    .reward-card:hover{ transform:translateY(-6px) }
+    .day{ font-size:16px; font-weight:700; color:var(--accent1) }
+    .amount{ font-size:18px; margin:8px 0; }
+    .claim-btn{
+      padding:10px 12px;
+      border-radius:10px;
+      background:linear-gradient(135deg,var(--accent1),#5b21b6);
+      color:white;
+      font-weight:700;
+      border:none;
+      cursor:pointer;
+      box-shadow:0 8px 18px rgba(0,0,0,0.6), inset 0 2px 6px rgba(255,255,255,0.06);
+      transition:transform .15s, box-shadow .15s, opacity .15s;
+      font-size:14px;
+    }
+    .claim-btn:hover{ transform:scale(1.06) }
+    .claim-btn[disabled], .claim-btn.claimed{
+      background:#444;
+      cursor:not-allowed;
+      opacity:.9;
+      box-shadow:none;
+      transform:none;
+    }
+
+    /* popup */
+    .popup{
+      position:fixed;
+      top:50%;
+      left:50%;
+      transform:translate(-50%,-50%) scale(.85);
+      background:linear-gradient(135deg, rgba(15,6,30,0.98), rgba(10,3,20,0.98));
+      padding:22px 28px;
+      border-radius:14px;
+      text-align:center;
+      z-index:9999;
+      box-shadow:0 10px 40px rgba(0,0,0,0.7), 0 0 30px rgba(168,85,247,0.15);
+      color:#fff;
+      pointer-events:none;
+      opacity:0;
+      transition:all .35s cubic-bezier(.2,.9,.24,1);
+      font-weight:700;
+      min-width:220px;
+    }
+    .popup.show{
+      opacity:1;
+      transform:translate(-50%,-50%) scale(1);
+      pointer-events:auto;
+    }
+    .popup .amount{
+      font-size:20px;
+      margin-top:8px;
+      color:var(--accent1);
+    }
+
+    /* small screens tweaks */
+    @media (max-width:420px){
+      header{ font-size:22px; }
+      .claim-btn{ font-size:13px; padding:10px; }
+    }
+  </style>
+</head>
+<body>
+  <header>JEETO</header>
+
+  <main>
+    <h2>Daily Rewards — Claim once every 24 hours</h2>
+    <div id="rewards" class="rewards" aria-live="polite"></div>
+  </main>
+
+  <!-- popup -->
+  <div id="popup" class="popup" role="status" aria-hidden="true">
+    <div id="popupText">🎉 Reward Claimed!</div>
+    <div id="popupAmount" class="amount"></div>
+  </div>
+
+  <!-- Firebase + logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    // ---------- CONFIG ----------
+    const firebaseConfig = {
+      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+      authDomain: "jeeto-bb7f1.firebaseapp.com",
+      projectId: "jeeto-bb7f1",
+      storageBucket: "jeeto-bb7f1.firebasestorage.app",
+      messagingSenderId: "922013773739",
+      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // ---------- REWARDS DATA ----------
+    const rewardsData = [
+      { day: 1, amount: 50 },
+      { day: 2, amount: 70 },
+      { day: 3, amount: 100 },
+      { day: 4, amount: 150 },
+      { day: 5, amount: 200 },
+      { day: 6, amount: 250 },
+      { day: 7, amount: 500 }
+    ];
+
+    const rewardsDiv = document.getElementById("rewards");
+    const popup = document.getElementById("popup");
+    const popupAmount = document.getElementById("popupAmount");
+    const popupText = document.getElementById("popupText");
+
+    // helper: days difference (UTC day difference)
+    function daysBetweenUTC(a, b) {
+      // returns integer number of days a - b (a later than b => positive)
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const utcA = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+      const utcB = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+      return Math.floor((utcA - utcB) / msPerDay);
+    }
+
+    // show popup with amount text
+    function showPopup(amount) {
+      popupAmount.textContent = `${amount} PKR`;
+      popupText.textContent = "🎉 Reward Claimed!";
+      popup.classList.add("show");
+      popup.setAttribute("aria-hidden", "false");
+
+      setTimeout(() => {
+        popup.classList.remove("show");
+        popup.setAttribute("aria-hidden", "true");
+      }, 2500);
+    }
+
+    // RENDER UI based on state
+    function renderRewardsUI(user, effectiveLastClaimDay, canClaim, nextDay) {
+      rewardsDiv.innerHTML = "";
+
+      rewardsData.forEach((reward) => {
+        const card = document.createElement("div");
+        card.className = "reward-card";
+
+        const dayEl = document.createElement("div");
+        dayEl.className = "day";
+        dayEl.textContent = `Day ${reward.day}`;
+
+        const amountEl = document.createElement("div");
+        amountEl.className = "amount";
+        amountEl.textContent = `${reward.amount} PKR`;
+
+        const btn = document.createElement("button");
+        btn.className = "claim-btn";
+
+        // Determine button state
+        if (reward.day <= effectiveLastClaimDay) {
+          btn.textContent = "Claimed";
+          btn.disabled = true;
+          btn.classList.add("claimed");
+        } else if (reward.day === nextDay && canClaim) {
+          btn.textContent = "Claim";
+          btn.disabled = false;
+        } else {
+          btn.textContent = "Locked";
+          btn.disabled = true;
+          btn.classList.add("claimed");
+        }
+
+        // Handle claim click only when enabled
+        btn.addEventListener("click", async () => {
+          if (btn.disabled) return;
+
+          // Immediately disable to avoid double clicks
+          btn.disabled = true;
+          btn.textContent = "Claimed";
+          btn.classList.add("claimed");
+
+          const dayToClaim = nextDay;
+
+          try {
+            // Save claim: lastClaimDay + lastClaim timestamp (server time)
+            await setDoc(doc(db, "dailyRewards", user.uid), {
+              lastClaimDay: dayToClaim,
+              lastClaim: serverTimestamp()
+            }, { merge: true });
+
+            // Show popup with exact amount
+            showPopup(reward.amount);
+
+            // After successful save, update UI state: nextDay increments and effectiveLastClaimDay becomes claimed day
+            effectiveLastClaimDay = dayToClaim;
+            // nextDay for display becomes next in sequence
+            nextDay = (dayToClaim % 7) + 1;
+            // After claiming, cannot claim again today
+            canClaim = false;
+
+            // Re-render to reflect new state
+            renderRewardsUI(user, effectiveLastClaimDay, canClaim, nextDay);
+
+          } catch (err) {
+            // Rollback UI on error
+            console.error("Error saving daily reward:", err);
+            btn.disabled = false;
+            btn.textContent = "Claim";
+            btn.classList.remove("claimed");
+            alert("Error claiming reward. Please try again.");
+          }
+        });
+
+        // assemble card
+        card.appendChild(dayEl);
+        card.appendChild(amountEl);
+        card.appendChild(btn);
+        rewardsDiv.appendChild(card);
+      });
+    }
+
+    // Main: on auth state load user progress and render correctly
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        // not logged in -> go to login
+        window.location.href = "index.html";
+        return;
+      }
+
+      // default state
+      let effectiveLastClaimDay = 0; // days already claimed in current streak (0 means none)
+      let canClaim = true;
+      let nextDay = 1;
+
+      try {
+        const docRef = doc(db, "dailyRewards", user.uid);
+        const snap = await getDoc(docRef);
+
+        if (!snap.exists()) {
+          // No doc yet -> user can claim day 1
+          effectiveLastClaimDay = 0;
+          canClaim = true;
+          nextDay = 1;
+        } else {
+          const data = snap.data();
+          const lastClaimDay = data.lastClaimDay || 0;
+          const lastClaimTS = data.lastClaim || null;
+          const now = new Date();
+
+          if (!lastClaimTS) {
+            // No timestamp (shouldn't normally happen) -> treat as no claim
+            effectiveLastClaimDay = 0;
+            canClaim = true;
+            nextDay = 1;
+          } else {
+            const lastClaimDate = lastClaimTS.toDate ? lastClaimTS.toDate() : new Date(lastClaimTS);
+            const diff = daysBetweenUTC(now, lastClaimDate); // positive if now later
+
+            if (diff === 0) {
+              // already claimed today
+              effectiveLastClaimDay = lastClaimDay;
+              canClaim = false;
+              nextDay = (lastClaimDay % 7) + 1;
+            } else if (diff === 1) {
+              // consecutive day -> continue streak
+              effectiveLastClaimDay = lastClaimDay;
+              canClaim = true;
+              nextDay = (lastClaimDay % 7) + 1;
+            } else {
+              // missed at least one day -> reset streak
+              effectiveLastClaimDay = 0;
+              canClaim = true;
+              nextDay = 1;
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Failed loading dailyRewards:", err);
+        // fallback: allow claim day 1
+        effectiveLastClaimDay = 0;
+        canClaim = true;
+        nextDay = 1;
+      }
+
+      // Render
+      renderRewardsUI(user, effectiveLastClaimDay, canClaim, nextDay);
+    });
+  </script>
+</body>
+</html>

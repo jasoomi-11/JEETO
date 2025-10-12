@@ -1,136 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jeeto - Home</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile - JEETO</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    body, html {
+    :root {
+      --bg1: #1a0033;
+      --bg2: #000000;
+      --text: #ffffff;
+      --accent: #9c27b0;
+    }
+    body {
       margin: 0;
-      padding: 0;
       font-family: Arial, sans-serif;
-      height: 100%;
-      background: linear-gradient(135deg, #0a0a0a, #5a189a);
-      color: white;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      color: var(--text);
     }
-
-    /* ✅ Header Title */
     header {
-      text-align: center;
-      padding: 25px 10px;
-      font-size: 3rem;
-      font-weight: 900;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      background: linear-gradient(135deg, #a855f7, #ec4899);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0px 5px 20px rgba(200, 0, 255, 0.6);
+      position: sticky;
+      top: 0;
+      background: linear-gradient(135deg, var(--bg2), var(--bg1));
+      padding: 15px 20px;
+      font-weight: bold;
+      font-size: 20px;
+      color: var(--accent);
+      letter-spacing: 2px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header .balance {
+      font-size: 16px;
+      color: var(--text);
+    }
+    main {
+      padding: 20px;
+      margin-bottom: 120px; /* nav ke liye space */
+    }
+    .card {
+      background: rgba(255,255,255,0.08);
+      padding: 18px;
+      border-radius: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+      transform: perspective(800px) rotateX(2deg);
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      color: var(--accent);
     }
 
-    /* ✅ 3D Navbar */
+    /* ✅ Updated 3D Glassy Nav - Edges Touch Nahi Karega */
     nav {
       position: fixed;
-      bottom: 15px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
-      width: 95%;
+      width: 90%;
+      max-width: 480px;
+      background: linear-gradient(145deg, var(--bg1), var(--bg2));
       display: flex;
       justify-content: space-around;
-      align-items: center;
-      padding: 12px 0;
-      background: linear-gradient(145deg, #1a1a1a, #6d28d9);
+      padding: 14px 0;
       border-radius: 18px;
-      box-shadow: 
-        0 -6px 12px rgba(0, 0, 0, 0.6),
-        inset 0 3px 6px rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.7), inset 0 2px 4px rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
     }
-
     nav a {
-      color: white;
+      color: #bbb;
+      font-size: 22px;
       text-decoration: none;
-      font-weight: bold;
-      transition: 0.3s;
-      font-size: 0.9rem;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      text-shadow: 0px 2px 5px rgba(0,0,0,0.8);
+      transition: transform 0.2s, color 0.3s;
     }
-
-    nav a i {
-      font-size: 1.3rem;
+    nav a:hover {
+      transform: scale(1.2);
+      color: #d1a1ff;
     }
-
-    nav a:hover, nav a.active {
-      color: #ff66ff;
-      transform: translateY(-3px) scale(1.1);
-    }
-
-    /* ✅ Responsive */
-    @media (max-width: 600px) {
-      header {
-        font-size: 2.2rem;
-      }
-      nav {
-        width: 97%;
-        padding: 10px 0;
-      }
-      nav a {
-        font-size: 0.75rem;
-      }
-      nav a i {
-        font-size: 1.1rem;
-      }
+    nav a.active {
+      color: var(--accent);
+      transform: scale(1.2);
     }
   </style>
 </head>
 <body>
+  <header>
+    <div class="balance" id="balance">Balance: 0 PKR</div>
+    JEETO
+  </header>
 
-  <!-- ✅ Header Title -->
-  <header>JEETO</header>
+  <main>
+    <div class="card">
+      <h3>Username</h3>
+      <p id="username">Loading...</p>
+    </div>
+    <div class="card">
+      <h3>Email</h3>
+      <p id="email">Loading...</p>
+    </div>
+    <div class="card">
+      <h3>Registered At</h3>
+      <p id="createdAt">Loading...</p>
+    </div>
+    <div class="card">
+      <h3>Available Balance</h3>
+      <p id="availableBalance">0 PKR</p>
+    </div>
+  </main>
 
-  <!-- ✅ Bottom Navbar with Icons -->
   <nav>
-    <a href="index.html" class="active"><i class="fa-solid fa-house"></i> Home</a>
-    <a href="task.html"><i class="fa-solid fa-list-check"></i> Tasks</a>
-    <a href="withdraw.html"><i class="fa-solid fa-wallet"></i> Withdraw</a>
-    <a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+    <a href="homepage.html"><i class="fas fa-home"></i></a>
+    <a href="task.html"><i class="fas fa-tasks"></i></a>
+    <a href="profile.html" class="active"><i class="fas fa-user"></i></a>
+    <a href="withdraw.html"><i class="fas fa-wallet"></i></a>
   </nav>
 
-  <!-- ✅ Firebase Auth -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
-    // ✅ Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
-      authDomain: "jeeto-bb7f1.firebaseapp.com",
-      projectId: "jeeto-bb7f1",
-      storageBucket: "jeeto-bb7f1.firebasestorage.app",
-      messagingSenderId: "922013773739",
-      appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAdcLEyFpiylAPCkxcZsAdgVfY9kXqXQdw",
+    authDomain: "jeeto-bb7f1.firebaseapp.com",
+    projectId: "jeeto-bb7f1",
+    storageBucket: "jeeto-bb7f1.firebasestorage.app",
+    messagingSenderId: "922013773739",
+    appId: "1:922013773739:web:02fa76cd58dfa9d3e16cee"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    // ✅ Auth State Listener
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        window.location.href = "index.html";
-        return;
-      }
-      // ✅ Sirf login user ko access, aur koi check nahi
-    });
-  </script>
+  const balanceEl = document.getElementById("balance");
+  const usernameEl = document.getElementById("username");
+  const emailEl = document.getElementById("email");
+  const createdAtEl = document.getElementById("createdAt");
+  const availableBalanceEl = document.getElementById("availableBalance");
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      window.location.href = "index.html"; // ❌ Not logged in
+      return;
+    }
+
+    const userDoc = await getDoc(doc(db, "users", user.uid));
+    if (!userDoc.exists()) {
+      window.location.href = "deposit.html"; // ❌ No record → send to deposit
+      return;
+    }
+
+    const data = userDoc.data();
+
+    // ✅ Check status from users collection
+    if (data.status !== "Approved") {
+      window.location.href = "deposit.html"; // ❌ Pending users → deposit page
+      return;
+    }
+
+    // ✅ Approved users → Full access
+    usernameEl.textContent = data.username || "N/A";
+    emailEl.textContent = data.email || user.email;
+    createdAtEl.textContent = data.createdAt?.toDate().toLocaleString() || "N/A";
+    availableBalanceEl.textContent = (data.balance || 0) + " PKR";
+    balanceEl.textContent = "Balance: " + (data.balance || 0) + " PKR";
+  });
+</script>
 </body>
 </html>
